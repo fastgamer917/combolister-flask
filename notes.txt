@@ -1,0 +1,11 @@
+pip install celery
+pip install redis
+pip install flask
+
+To use celery along with multiprocessing:
+celery -A combolister worker --loglevel=info -P threads
+
+To run redis server:
+redis-server
+If any error in redis server, then `sudo service redis-server stop` and rerun above
+
