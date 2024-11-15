@@ -1,14 +1,18 @@
 import os
 import multiprocessing
 import queue as Queue
+import requests
+from app import celery
 
 
-def save_combo_to_db(combo, source,task_progress_obj_pk):
-    """Save a found combo to the FoundCombos model."""
+def send_combos_to_remote(to_remote_send_results_for_file,task_progress_obj_pk):
+    """Send the combos to the remote server"""
     try:
-        SearchResult.objects.create(combo=combo, source=source,search_id=task_progress_obj_pk)
+        if to_remote_send_results_for_file:
+            url = "http://16.171.36.93:4891/combolister/api/save_results"
+            res = requests.put(url, json=to_remote_send_results_for_file)
     except Exception as e:
-        print(f"Error saving combo: {combo}. Exception: {e}")
+        print(f"Error sending combos to remote: Exception: {e}")
         return False
     return True
 
@@ -20,11 +24,12 @@ def find_lines_with_keyword(file_path, file_name, keyword, output_queue,task_pro
             for line in file:
                 if keyword in line:
                     try:
-                        save_combo_to_db(line.strip(), file_name,task_progress_obj_pk)
-                        to_remote_send_results_for_file.append({})
+                        to_remote_send_results_for_file.append({"found_string":line.strip(),"found_in_file":file_name})
                         output_queue.put((file_name, line.strip()), block=False)
                     except Queue.Full:
+                        send_combos_to_remote(to_remote_send_results_for_file, task_progress_obj_pk)
                         return
+        send_combos_to_remote(to_remote_send_results_for_file,task_progress_obj_pk)
     except Exception as e:
         output_queue.put((file_path, f"Error reading file: {str(e)}"))
 
@@ -58,11 +63,11 @@ def process_files_in_folder(folder_path, keyword, num_processes,task_progress_ob
     return matches
 
 
-# Usage example
-def search_folder_files_v2(keyword:str,task_progress_obj_pk:int, folder_path_obj:str)->list:
+@celery.task
+def search_folder_files_v2(keyword:str,task_progress_obj_pk:int, folder_path:str)->list:
     num_processes = multiprocessing.cpu_count()  # Adjust this based on your system's capabilities
     to_return_list=[]
-    matches = process_files_in_folder(folder_path_obj.strip(), keyword.strip(), num_processes,task_progress_obj_pk)
+    matches = process_files_in_folder(folder_path.strip(), keyword.strip(), num_processes,task_progress_obj_pk)
     for file_name, combo in matches:
         to_return_list.append({
             "combo":combo,
