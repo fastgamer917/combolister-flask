@@ -1,16 +1,19 @@
-# This is a sample Python script.
+from flask import Flask
+from celery_app import make_celery
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+app = Flask(__name__)
 
+# Optional: Add Flask config for Celery
+app.config.update(
+    CELERY_BROKER_URL='redis://localhost:6379/0',  # Replace with your Redis broker URL
+    CELERY_RESULT_BACKEND='redis://localhost:6379/0'
+)
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+# Create a Celery instance
+celery = make_celery(app)
 
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+@app.route('/submit_search')
+def submit_search():
+    # Example: Calling a Celery task
+    reverse.delay("Hello, Celery!")
+    return "Task is running in the background!"
