@@ -15,8 +15,8 @@ celery = make_celery(app)
 
 
 @celery.task
-def create_task(**kwargs):
-    search_folder_files_v2(**kwargs)
+def create_task(search_term:str,task_progress_obj_pk:int, folder_path:str):
+    search_folder_files_v2(search_term=search_term, task_progress_obj_pk=task_progress_obj_pk, folder_path=folder_path)
 
 
 @app.route('/', methods=['GET'])
