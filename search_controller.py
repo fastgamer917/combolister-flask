@@ -2,8 +2,6 @@ import os
 import multiprocessing
 import queue as Queue
 import requests
-from app import celery
-
 
 def send_combos_to_remote(to_remote_send_results_for_file,task_progress_obj_pk):
     """Send the combos to the remote server"""
@@ -67,26 +65,8 @@ def process_files_in_folder(folder_path, keyword, num_processes,task_progress_ob
     return matches
 
 
-@celery.task
-def search_folder_files_v2(keyword:str,task_progress_obj_pk:int, folder_path:str)->list:
+def search_folder_files_v2(search_term:str,task_progress_obj_pk:int, folder_path:str):
     num_processes = multiprocessing.cpu_count()  # Adjust this based on your system's capabilities
     to_return_list=[]
-    matches = process_files_in_folder(folder_path.strip(), keyword.strip(), num_processes,task_progress_obj_pk)
-    for file_name, combo in matches:
-        to_return_list.append({
-            "combo":combo,
-            "source":file_name,
-        })
+    matches = process_files_in_folder(folder_path.strip(), search_term.strip(), num_processes,task_progress_obj_pk)
 
-    #remove duplicate findings
-    seen = set()  # Set to track seen "combo" values
-    unique_data = []  # List to store unique dictionaries
-
-    for item in to_return_list:
-        combo = item["combo"]
-        if combo not in seen:
-            unique_data.append(item)
-            seen.add(combo)
-
-    # unique_data now contains dictionaries with unique "combo" values
-    return unique_data
