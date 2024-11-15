@@ -2,10 +2,15 @@ pip install celery
 pip install redis
 pip install flask
 
-To use celery along with multiprocessing:
-celery -A combolister worker --loglevel=info -P threads
+To use celery along with multiprocessing, navigate to root folder and:
+celery -A app.celery worker --loglevel=info -P threads
+in above command "app.celery" represents the file which defined "celery = make_celery(app)"
+i.e point to where celery object is created.
 
 To run redis server:
 redis-server
 If any error in redis server, then `sudo service redis-server stop` and rerun above
 
+
+Running Flask app is bit different than running django.
+flask run --host=0.0.0.0 --port=7002

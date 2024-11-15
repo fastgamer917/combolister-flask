@@ -12,7 +12,7 @@ def send_combos_to_remote(to_remote_send_results_for_file,task_progress_obj_pk):
                 "search_id":task_progress_obj_pk,
                 "results":to_remote_send_results_for_file
             }
-            res = requests.put(url, json=json_data)
+            res = requests.post(url, json=json_data)
     except Exception as e:
         print(f"Error sending combos to remote: Exception: {e}")
         return False

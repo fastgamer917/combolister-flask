@@ -31,7 +31,3 @@ def submit_search():
     folder_path = json_data['logs_folder_path']
     create_task.delay(search_term=search_term, task_progress_obj_pk=task_progress_obj_pk, folder_path=folder_path)
     return "Task is running in the background!"
-
-
-
-app.run(host='0.0.0.0', port=7002, debug=True)
