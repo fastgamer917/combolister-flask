@@ -68,15 +68,24 @@ def process_files_in_folder(folder_path, keyword, num_processes,task_progress_ob
 
 def search_folder_files_v2(search_term:str,task_progress_obj_pk:int, folder_path:str):
     start_time = time.time()
-    num_processes = multiprocessing.cpu_count()  # Adjust this based on your system's capabilities
-    to_return_list=[]
-    matches = process_files_in_folder(folder_path.strip(), search_term.strip(), num_processes,task_progress_obj_pk)
-    # Once everything search ios dopne, update the status of search to complete
-    url = "http://16.171.36.93:4891/combolister/api/search_status_update"
-    status: str
-    json_data = {
-        "search_id": task_progress_obj_pk,
-        "status": "COMPLETED",
-        "run_time": time.time() - start_time,
-    }
-    res = requests.post(url, json=json_data)
+    try:
+        num_processes = multiprocessing.cpu_count()  # Adjust this based on your system's capabilities
+        to_return_list=[]
+        matches = process_files_in_folder(folder_path.strip(), search_term.strip(), num_processes,task_progress_obj_pk)
+        # Once everything search ios dopne, update the status of search to complete
+        url = "http://16.171.36.93:4891/combolister/api/search_status_update"
+        json_data = {
+            "search_id": task_progress_obj_pk,
+            "status": "COMPLETED",
+            "run_time": time.time() - start_time,
+        }
+        res = requests.post(url, json=json_data)
+    #If anything failure, report it.
+    except Exception as e:
+        url = "http://16.171.36.93:4891/combolister/api/search_status_update"
+        json_data = {
+            "search_id": task_progress_obj_pk,
+            "status": e,
+            "run_time": time.time() - start_time,
+        }
+        res = requests.post(url, json=json_data)
